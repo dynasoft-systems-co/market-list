@@ -1,80 +1,143 @@
 import React, { useState } from 'react';
-import { FlatList } from 'react-native';
-import styled from 'styled-components/native';
+import { Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { Group } from '../models/types';
-import ItemRow from './ItemRow';
-import ChevronIcon from './ChevronIcon';
-import AddItemInput from './AddItemInput';
+import styled from 'styled-components/native';
 
-type Props = {
+interface Props {
   group: Group;
   onAddItem: (groupId: string, itemName: string) => void;
   onRemoveItem: (groupId: string, itemId: string) => void;
   onRemoveGroup: (groupId: string) => void;
-};
-
-const Wrapper = styled.View`
-  margin-bottom: 16px;
-  border-bottom-width: 1px;
-  border-color: #ccc;
-`;
-
-const Header = styled.TouchableOpacity`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #f4f4f4;
-`;
-
-const GroupTitle = styled.Text`
-  font-size: 18px;
-  font-weight: 600;
-`;
-
-const RemoveButton = styled.TouchableOpacity`
-  padding: 4px 8px;
-`;
-
-const RemoveText = styled.Text`
-  color: red;
-`;
+  onMoveGroup: (groupId: string, direction: 'up' | 'down') => void;
+  onMoveItem: (groupId: string, itemId: string, direction: 'up' | 'down') => void;
+}
 
 const GroupSection = ({
   group,
   onAddItem,
   onRemoveItem,
   onRemoveGroup,
+  onMoveGroup,
+  onMoveItem,
 }: Props) => {
-  const [expanded, setExpanded] = useState(true);
+  const [inputText, setInputText] = useState('');
+  const [collapsed, setCollapsed] = useState(false);
+
+  const handleAdd = () => {
+    if (inputText.trim()) {
+      onAddItem(group.id, inputText.trim());
+      setInputText('');
+    }
+  };
 
   return (
-    <Wrapper>
-      <Header onPress={() => setExpanded(!expanded)}>
-        <GroupTitle>{group.name}</GroupTitle>
-        <ChevronIcon direction={expanded ? 'down' : 'right'} />
-      </Header>
+    <GroupContainer>
+      <GroupHeader>
+        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{group.name}</Text>
+        <GroupActions>
+          <TouchableOpacity onPress={() => setCollapsed((prev) => !prev)}>
+            <ActionText>{collapsed ? '▶' : '▼'}</ActionText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onMoveGroup(group.id, 'up')}>
+            <ActionText>↑</ActionText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onMoveGroup(group.id, 'down')}>
+            <ActionText>↓</ActionText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onRemoveGroup(group.id)}>
+            <ActionText>✕</ActionText>
+          </TouchableOpacity>
+        </GroupActions>
+      </GroupHeader>
 
-      {expanded && (
+      {!collapsed && (
         <>
-          <FlatList
-            data={group.items}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <ItemRow
-                item={item}
-                onRemove={() => onRemoveItem(group.id, item.id)}
-              />
-            )}
-          />
-          <AddItemInput onAdd={(itemName) => onAddItem(group.id, itemName)} />
-          <RemoveButton onPress={() => onRemoveGroup(group.id)}>
-            <RemoveText>Remove Group</RemoveText>
-          </RemoveButton>
+          {group.items
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((item, index) => (
+              <ItemRow key={item.id}>
+                <Text style={{ flex: 1 }}>{item.name}</Text>
+                <ItemActions>
+                  <TouchableOpacity onPress={() => onMoveItem(group.id, item.id, 'up')}>
+                    <ActionText>↑</ActionText>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onMoveItem(group.id, item.id, 'down')}>
+                    <ActionText>↓</ActionText>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onRemoveItem(group.id, item.id)}>
+                    <ActionText>✕</ActionText>
+                  </TouchableOpacity>
+                </ItemActions>
+              </ItemRow>
+            ))}
+
+          <AddItemRow>
+            <ItemInput
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="New item..."
+              onSubmitEditing={handleAdd}
+              returnKeyType="done"
+            />
+            <TouchableOpacity onPress={handleAdd}>
+              <ActionText style={{ fontSize: 20, marginLeft: 8 }}>＋</ActionText>
+            </TouchableOpacity>
+          </AddItemRow>
         </>
       )}
-    </Wrapper>
+    </GroupContainer>
   );
 };
 
 export default GroupSection;
+
+// Styled components
+const GroupContainer = styled.View`
+  margin-bottom: 24px;
+  padding: 12px;
+  background-color: #f4f4f4;
+  border-radius: 12px;
+`;
+
+const GroupHeader = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const GroupActions = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ActionText = styled.Text`
+  font-size: 18px;
+  padding: 4px;
+`;
+
+const ItemRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 4px;
+`;
+
+const ItemActions = styled.View`
+  flex-direction: row;
+  gap: 8px;
+`;
+
+const AddItemRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 8px;
+`;
+
+const ItemInput = styled.TextInput`
+  flex: 1;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 16px;
+`;

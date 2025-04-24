@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FlatList, Text, ActivityIndicator } from 'react-native';
+import DraggableFlatList, {
+  RenderItemParams,
+} from 'react-native-draggable-flatlist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Group } from '../models/types';
 import { Container, CenteredContent } from '../styles/global';
@@ -86,6 +89,42 @@ const ListScreen = () => {
     );
   };
 
+  const moveGroup = (groupId: string, direction: 'up' | 'down') => {
+    setGroups((prevGroups) => {
+      const index = prevGroups.findIndex((g) => g.id === groupId);
+      if (index < 0) return prevGroups;
+  
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prevGroups.length) return prevGroups;
+  
+      const newGroups = [...prevGroups];
+      [newGroups[index], newGroups[targetIndex]] = [newGroups[targetIndex], newGroups[index]];
+  
+      // Update order fields
+      return newGroups.map((g, i) => ({ ...g, order: i }));
+    });
+  };
+
+  const moveItem = (groupId: string, itemId: string, direction: 'up' | 'down') => {
+    setGroups((prevGroups) =>
+      prevGroups.map((g) => {
+        if (g.id !== groupId) return g;
+  
+        const index = g.items.findIndex((i) => i.id === itemId);
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (index < 0 || targetIndex < 0 || targetIndex >= g.items.length) return g;
+  
+        const newItems = [...g.items];
+        [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+  
+        return {
+          ...g,
+          items: newItems.map((i, iIndex) => ({ ...i, order: iIndex })),
+        };
+      })
+    );
+  };
+
   if (isLoading) {
     return (
       <CenteredContent>
@@ -98,7 +137,7 @@ const ListScreen = () => {
   return (
     <Container>
       <FlatList
-        data={groups}
+        data={[...groups].sort((a, b) => a.order - b.order)}
         keyExtractor={(group) => group.id}
         renderItem={({ item }) => (
           <GroupSection
@@ -106,6 +145,8 @@ const ListScreen = () => {
             onAddItem={handleAddItem}
             onRemoveItem={handleRemoveItem}
             onRemoveGroup={handleRemoveGroup}
+            onMoveGroup={moveGroup}
+            onMoveItem={moveItem}
           />
         )}
         ListFooterComponent={<AddGroupButton onPress={handleAddGroup} />}
