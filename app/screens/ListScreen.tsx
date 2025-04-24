@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Text, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Group } from '../models/types';
-import { Container } from '../styles/global';
+import { Container, CenteredContent } from '../styles/global';
 import GroupSection from '../components/GroupSection';
 import AddGroupButton from '../components/AddGroupButton';
 import uuid from 'react-native-uuid';
@@ -11,8 +11,8 @@ const STORAGE_KEY = '@market_list_groups';
 
 const ListScreen = () => {
   const [groups, setGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved groups from storage
   useEffect(() => {
     const loadGroups = async () => {
       try {
@@ -22,12 +22,13 @@ const ListScreen = () => {
         }
       } catch (error) {
         console.error('Failed to load groups from storage:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadGroups();
   }, []);
 
-  // Save groups whenever they change
   useEffect(() => {
     const saveGroups = async () => {
       try {
@@ -36,7 +37,9 @@ const ListScreen = () => {
         console.error('Failed to save groups to storage:', error);
       }
     };
-    saveGroups();
+    if (!isLoading) {
+      saveGroups();
+    }
   }, [groups]);
 
   const handleAddGroup = () => {
@@ -82,6 +85,15 @@ const ListScreen = () => {
       )
     );
   };
+
+  if (isLoading) {
+    return (
+      <CenteredContent>
+        <ActivityIndicator size="large" color="#7216f4" />
+        <Text style={{ marginTop: 10 }}>Loading...</Text>
+      </CenteredContent>
+    );
+  }
 
   return (
     <Container>
