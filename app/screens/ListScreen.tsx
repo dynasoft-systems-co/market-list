@@ -1,158 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, Text, ActivityIndicator } from 'react-native';
-import DraggableFlatList, {
-  RenderItemParams,
-} from 'react-native-draggable-flatlist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { Group } from '../models/types';
-import { Container, CenteredContent } from '../styles/global';
 import GroupSection from '../components/GroupSection';
-import AddGroupButton from '../components/AddGroupButton';
 import uuid from 'react-native-uuid';
+import AddGroupButton from '../components/AddGroupButton';
 
-const STORAGE_KEY = '@market_list_groups';
+type Props = {
+  groups: Group[];
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
+  onAddItem: (groupId: string, itemName: string) => void;
+  onRemoveItem: (groupId: string, itemId: string) => void;
+  onRemoveGroup: (groupId: string) => void;
+  onMoveItem: (
+    groupId: string,
+    itemId: string,
+    direction: 'up' | 'down'
+  ) => void;
+};
 
-const ListScreen = () => {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadGroups = async () => {
-      try {
-        const saved = await AsyncStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          setGroups(JSON.parse(saved));
-        }
-      } catch (error) {
-        console.error('Failed to load groups from storage:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadGroups();
-  }, []);
-
-  useEffect(() => {
-    const saveGroups = async () => {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
-      } catch (error) {
-        console.error('Failed to save groups to storage:', error);
-      }
-    };
-    if (!isLoading) {
-      saveGroups();
-    }
-  }, [groups]);
-
+const ListScreen = ({
+  groups,
+  setGroups,
+  onAddItem,
+  onRemoveItem,
+  onRemoveGroup,
+  onMoveItem,
+}: Props) => {
   const handleAddGroup = () => {
     const newGroup: Group = {
       id: uuid.v4() as string,
-      name: `New Section`,
-      order: groups.length,
+      name: `Group ${groups.length + 1}`,
       items: [],
     };
-    setGroups((prev) => [...prev, newGroup]);
+    setGroups(prev => [...prev, newGroup]);
   };
-
-  const handleRemoveGroup = (groupId: string) => {
-    setGroups((prev) => prev.filter((g) => g.id !== groupId));
-  };
-
-  const handleAddItem = (groupId: string, itemName: string) => {
-    setGroups((prevGroups) =>
-      prevGroups.map((g) =>
-        g.id === groupId
-          ? {
-              ...g,
-              items: [
-                ...g.items,
-                {
-                  id: uuid.v4() as string,
-                  name: itemName,
-                  checked: false,
-                },
-              ],
-            }
-          : g
-      )
-    );
-  };
-
-  const handleRemoveItem = (groupId: string, itemId: string) => {
-    setGroups((prevGroups) =>
-      prevGroups.map((g) =>
-        g.id === groupId
-          ? { ...g, items: g.items.filter((item) => item.id !== itemId) }
-          : g
-      )
-    );
-  };
-
-  const moveGroup = (groupId: string, direction: 'up' | 'down') => {
-    setGroups((prevGroups) => {
-      const index = prevGroups.findIndex((g) => g.id === groupId);
-      if (index < 0) return prevGroups;
-  
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= prevGroups.length) return prevGroups;
-  
-      const newGroups = [...prevGroups];
-      [newGroups[index], newGroups[targetIndex]] = [newGroups[targetIndex], newGroups[index]];
-  
-      // Update order fields
-      return newGroups.map((g, i) => ({ ...g, order: i }));
-    });
-  };
-
-  const moveItem = (groupId: string, itemId: string, direction: 'up' | 'down') => {
-    setGroups((prevGroups) =>
-      prevGroups.map((g) => {
-        if (g.id !== groupId) return g;
-  
-        const index = g.items.findIndex((i) => i.id === itemId);
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (index < 0 || targetIndex < 0 || targetIndex >= g.items.length) return g;
-  
-        const newItems = [...g.items];
-        [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
-  
-        return {
-          ...g,
-          items: newItems.map((i, iIndex) => ({ ...i, order: iIndex })),
-        };
-      })
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <CenteredContent>
-        <ActivityIndicator size="large" color="#7216f4" />
-        <Text style={{ marginTop: 10 }}>Loading...</Text>
-      </CenteredContent>
-    );
-  }
 
   return (
-    <Container>
-      <FlatList
-        data={[...groups].sort((a, b) => a.order - b.order)}
-        keyExtractor={(group) => group.id}
-        renderItem={({ item }) => (
-          <GroupSection
-            group={item}
-            onAddItem={handleAddItem}
-            onRemoveItem={handleRemoveItem}
-            onRemoveGroup={handleRemoveGroup}
-            onMoveGroup={moveGroup}
-            onMoveItem={moveItem}
-          />
-        )}
-        ListFooterComponent={<AddGroupButton onPress={handleAddGroup} />}
-      />
-    </Container>
+    <View style={styles.container}>
+      <AddGroupButton onPress={handleAddGroup} />
+      {groups.length === 0 ? (
+        <Text style={styles.emptyText}>No groups yet. Add one above!</Text>
+      ) : (
+        <FlatList
+          data={groups}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <GroupSection
+              group={item}
+              onAddItem={onAddItem}
+              onRemoveItem={onRemoveItem}
+              onRemoveGroup={onRemoveGroup}
+              onMoveItem={onMoveItem}
+            />
+          )}
+        />
+      )}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  emptyText: {
+    marginTop: 20,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+});
 
 export default ListScreen;
