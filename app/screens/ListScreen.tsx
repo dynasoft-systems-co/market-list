@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import styled from 'styled-components/native';
@@ -37,7 +37,14 @@ const GroupHeader = styled.View`
   justify-content: space-between;
   align-items: center;
 `;
-
+const GroupInput = styled.TextInput`
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom-width: 1px;
+  border-color: #fff;
+  margin-right: 8px;
+`;
 const DragHandle = styled.TouchableOpacity`
   padding: 4px;
 `;
@@ -68,23 +75,60 @@ const ListScreen = ({
     );
   };
 
-  const renderGroup = ({ item, drag }: RenderItemParams<Group>) => (
-    <GroupContainer>
-      <GroupHeader>
-        <GroupTitle>{item.name}</GroupTitle>
-        <DragHandle onPressIn={drag}>
-          <MaterialIcons name="drag-handle" size={20} color="#fff" />
-        </DragHandle>
-      </GroupHeader>
-
-
-      <ItemList
-        items={item.items}
-        groupId={item.id}
-        onReorder={(newItems) => handleReorderItems(newItems, item.id)}
-      />
-    </GroupContainer>
-  );
+  const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [name, setName] = useState(item.name);
+  
+    const handleSubmit = () => {
+      setGroups(prev =>
+        prev.map(g => (g.id === item.id ? { ...g, name } : g))
+      );
+      setIsEditing(false);
+    };
+  
+    return (
+      <GroupContainer>
+        <GroupHeader>
+          {isEditing ? (
+            <GroupInput
+              value={name}
+              onChangeText={setName}
+              onSubmitEditing={handleSubmit}
+              onBlur={handleSubmit}
+              autoFocus
+            />
+          ) : (
+            <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
+          )}
+          <DragHandle onPressIn={drag}>
+            <MaterialIcons name="drag-handle" size={20} color="#fff" />
+          </DragHandle>
+        </GroupHeader>
+  
+        <ItemList
+          items={item.items}
+          groupId={item.id}
+          onReorder={(newItems) => handleReorderItems(newItems, item.id)}
+          onRenameItem={(itemId, newName) => {
+            setGroups(prev =>
+              prev.map(g =>
+                g.id === item.id
+                  ? {
+                      ...g,
+                      items: g.items.map(i =>
+                        i.id === itemId ? { ...i, name: newName } : i
+                      ),
+                    }
+                  : g
+              )
+            );
+          }}
+          onRemoveItem={onRemoveItem}
+          onAddItem={onAddItem}
+        />
+      </GroupContainer>
+    );
+  };
 
   const handleAddGroup = () => {
     const newGroup: Group = {
