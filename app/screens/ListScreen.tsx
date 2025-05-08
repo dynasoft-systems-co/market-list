@@ -15,6 +15,7 @@ type Props = {
   onRemoveItem: (groupId: string, itemId: string) => void;
   onRemoveGroup: (groupId: string) => void;
   onMoveItem: (groupId: string, itemId: string, direction: 'up' | 'down') => void;
+  parentGestureHandlerRef: React.RefObject<any>; // <-- NOVA PROP
 };
 
 const Container = styled.View`
@@ -37,6 +38,7 @@ const GroupHeader = styled.View`
   justify-content: space-between;
   align-items: center;
 `;
+
 const GroupInput = styled.TextInput`
   color: #fff;
   font-size: 16px;
@@ -45,6 +47,7 @@ const GroupInput = styled.TextInput`
   border-color: #fff;
   margin-right: 8px;
 `;
+
 const DragHandle = styled.TouchableOpacity`
   padding: 4px;
 `;
@@ -56,7 +59,6 @@ const GroupTitle = styled.Text`
   flex: 1;
 `;
 
-
 const ListScreen = ({
   groups,
   setGroups,
@@ -64,9 +66,25 @@ const ListScreen = ({
   onRemoveItem,
   onRemoveGroup,
   onMoveItem,
+  parentGestureHandlerRef, // <- USADA AQUI
 }: Props) => {
   const handleReorderGroups = (data: Group[]) => {
     setGroups(data);
+  };
+
+  const handleRenameItem = (groupId: string, itemId: string, newName: string) => {
+    setGroups(prev =>
+      prev.map(group =>
+        group.id === groupId
+          ? {
+              ...group,
+              items: group.items.map(item =>
+                item.id === itemId ? { ...item, name: newName } : item
+              ),
+            }
+          : group
+      )
+    );
   };
 
   const handleReorderItems = (newItems: Item[], groupId: string) => {
@@ -78,14 +96,14 @@ const ListScreen = ({
   const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(item.name);
-  
+
     const handleSubmit = () => {
       setGroups(prev =>
         prev.map(g => (g.id === item.id ? { ...g, name } : g))
       );
       setIsEditing(false);
     };
-  
+
     return (
       <GroupContainer>
         <GroupHeader>
@@ -104,27 +122,15 @@ const ListScreen = ({
             <MaterialIcons name="drag-handle" size={20} color="#fff" />
           </DragHandle>
         </GroupHeader>
-  
+
         <ItemList
           items={item.items}
           groupId={item.id}
           onReorder={(newItems) => handleReorderItems(newItems, item.id)}
-          onRenameItem={(itemId, newName) => {
-            setGroups(prev =>
-              prev.map(g =>
-                g.id === item.id
-                  ? {
-                      ...g,
-                      items: g.items.map(i =>
-                        i.id === itemId ? { ...i, name: newName } : i
-                      ),
-                    }
-                  : g
-              )
-            );
-          }}
+          onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
           onRemoveItem={onRemoveItem}
           onAddItem={onAddItem}
+          simultaneousHandlers={parentGestureHandlerRef} // <- AQUI PASSAMOS A REF
         />
       </GroupContainer>
     );

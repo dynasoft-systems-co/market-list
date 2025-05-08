@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import ListScreen from './app/screens/ListScreen';
+// import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+// import ListScreen from './app/screens/ListScreen';
 import ShoppingListManager from './app/screens/ShoppingListManager';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 

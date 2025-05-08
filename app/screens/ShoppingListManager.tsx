@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 import ListScreen from './ListScreen';
 import { Group, Item } from '../models/types';
 import { loadGroups, saveGroups } from '../storage/useShoppingListStorage';
-import LoadingIndicator from '../components/LoadingIndicator';
 import uuid from 'react-native-uuid';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 
 const ShoppingListManager = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const gestureRef = useRef(null); // <-- REF PARA GESTOS
+
   useEffect(() => {
     (async () => {
       const saved = await loadGroups();
-      console.log(saved);
       setGroups(saved);
       setLoading(false);
     })();
@@ -90,14 +91,19 @@ const ShoppingListManager = () => {
   }
 
   return (
-    <ListScreen
-      groups={groups}
-      setGroups={setGroups}
-      onAddItem={handleAddItem}
-      onRemoveItem={handleRemoveItem}
-      onRemoveGroup={handleRemoveGroup}
-      onMoveItem={handleMoveItem}
-    />
+    <PanGestureHandler ref={gestureRef}>
+      <View style={{ flex: 1 }}>
+        <ListScreen
+          groups={groups}
+          setGroups={setGroups}
+          onAddItem={handleAddItem}
+          onRemoveItem={handleRemoveItem}
+          onRemoveGroup={handleRemoveGroup}
+          onMoveItem={handleMoveItem}
+          parentGestureHandlerRef={gestureRef} // <- PROP PARA LISTSCREEN
+        />
+      </View>
+    </PanGestureHandler>
   );
 };
 
