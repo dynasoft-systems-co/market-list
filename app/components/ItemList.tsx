@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { Swipeable } from 'react-native-gesture-handler';
 import styled from 'styled-components/native';
 import { Item } from '../models/types';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,6 +10,7 @@ type Props = {
   items: Item[];
   groupId: string;
   onReorder: (newItems: Item[]) => void;
+  onRemoveItem: (groupId: string, itemId: string) => void;
   onRenameItem: (itemId: string, newName: string) => void;
   onAddItem: (groupId: string, itemName: string) => void;
   parentGestureHandlerRef: React.Ref<any>;
@@ -50,35 +52,52 @@ const AddText = styled.Text`
   margin-left: 8px;
 `;
 
-const ItemList = ({ items, groupId, onRenameItem, onReorder, onAddItem, parentGestureHandlerRef }: Props) => {
+const ItemList = ({ items, groupId, onRemoveItem, onRenameItem, onReorder, onAddItem, parentGestureHandlerRef }: Props) => {
   const renderItem = ({ item, drag, isActive }: RenderItemParams<Item>) => {
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState(item.name);
-
+  
     const handleEndEditing = () => {
       onRenameItem(item.id, text.trim());
       setEditing(false);
     };
-
+  
+    const renderRightActions = () => (
+      <TouchableOpacity
+        style={{
+          backgroundColor: 'red',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 80,
+          height: '100%',
+        }}
+        onPress={() => onRemoveItem(groupId, item.id)}
+      >
+        <MaterialIcons name="delete" size={24} color="#fff" />
+      </TouchableOpacity>
+    );
+  
     return (
-      <ItemContainer isActive={isActive}>
-        {editing ? (
-          <StyledInput
-            value={text}
-            onChangeText={setText}
-            onBlur={handleEndEditing}
-            onSubmitEditing={handleEndEditing}
-            autoFocus
-          />
-        ) : (
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => setEditing(true)}>
-            <ItemText>{item.name}</ItemText>
-          </TouchableOpacity>
-        )}
-        <DragHandle onPressIn={drag}>
-          <MaterialIcons name="drag-handle" size={20} color="#aaa" />
-        </DragHandle>
-      </ItemContainer>
+      <Swipeable renderRightActions={renderRightActions}>
+        <ItemContainer isActive={isActive}>
+          {editing ? (
+            <StyledInput
+              value={text}
+              onChangeText={setText}
+              onBlur={handleEndEditing}
+              onSubmitEditing={handleEndEditing}
+              autoFocus
+            />
+          ) : (
+            <TouchableOpacity style={{ flex: 1 }} onPress={() => setEditing(true)}>
+              <ItemText>{item.name}</ItemText>
+            </TouchableOpacity>
+          )}
+          <DragHandle onPressIn={drag}>
+            <MaterialIcons name="drag-handle" size={20} color="#aaa" />
+          </DragHandle>
+        </ItemContainer>
+      </Swipeable>
     );
   };
 

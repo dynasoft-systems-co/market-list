@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
+import { Swipeable } from 'react-native-gesture-handler';
 import styled from 'styled-components/native';
 import { Group, Item } from '../models/types';
 import AddGroupButton from '../components/AddGroupButton';
@@ -96,45 +97,62 @@ const ListScreen = ({
   const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(item.name);
-
+  
     const handleSubmit = () => {
       setGroups(prev =>
         prev.map(g => (g.id === item.id ? { ...g, name } : g))
       );
       setIsEditing(false);
     };
-
-    return (
-      <GroupContainer>
-        <GroupHeader>
-          {isEditing ? (
-            <GroupInput
-              value={name}
-              onChangeText={setName}
-              onSubmitEditing={handleSubmit}
-              onBlur={handleSubmit}
-              autoFocus
-            />
-          ) : (
-            <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
-          )}
-          <DragHandle onPressIn={drag}>
-            <MaterialIcons name="drag-handle" size={20} color="#fff" />
-          </DragHandle>
-        </GroupHeader>
-
-        <ItemList
-          items={item.items}
-          groupId={item.id}
-          onReorder={(newItems) => handleReorderItems(newItems, item.id)}
-          onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
-          onRemoveItem={onRemoveItem}
-          onAddItem={onAddItem}
-          simultaneousHandlers={parentGestureHandlerRef} // <- AQUI PASSAMOS A REF
-        />
-      </GroupContainer>
+  
+    const renderRightActions = () => (
+      <TouchableOpacity
+        style={{
+          backgroundColor: 'red',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: 80,
+          height: '100%',
+        }}
+        onPress={() => onRemoveGroup(item.id)}
+      >
+        <MaterialIcons name="delete" size={24} color="#fff" />
+      </TouchableOpacity>
     );
-  };
+  
+    return (
+      <Swipeable renderRightActions={renderRightActions}>
+        <GroupContainer>
+          <GroupHeader>
+            {isEditing ? (
+              <GroupInput
+                value={name}
+                onChangeText={setName}
+                onSubmitEditing={handleSubmit}
+                onBlur={handleSubmit}
+                autoFocus
+              />
+            ) : (
+              <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
+            )}
+            <DragHandle onPressIn={drag}>
+              <MaterialIcons name="drag-handle" size={20} color="#fff" />
+            </DragHandle>
+          </GroupHeader>
+  
+          <ItemList
+            items={item.items}
+            groupId={item.id}
+            onReorder={(newItems) => handleReorderItems(newItems, item.id)}
+            onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
+            onRemoveItem={onRemoveItem}
+            onAddItem={onAddItem}
+            parentGestureHandlerRef={parentGestureHandlerRef}
+          />
+        </GroupContainer>
+      </Swipeable>
+    );
+  };  
 
   const handleAddGroup = () => {
     const newGroup: Group = {
