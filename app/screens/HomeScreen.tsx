@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import { FlatList, TouchableOpacity } from 'react-native';
 import styled from 'styled-components/native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialIcons } from '@expo/vector-icons';
