@@ -1,53 +1,31 @@
-import 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import React from "react";
+import "react-native-gesture-handler";
+import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import HomeScreen from "./app/screens/HomeScreen";
+import ListScreen from "./app/screens/ListScreen";
 
-import HomeScreen from './app/screens/HomeScreen';
-import ListScreen from './app/screens/ListScreen';
+export type RootStackParamList = {
+  Home: undefined;
+  List: { listId: string };
+};
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
+const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="HomeScreen">
-        {/* <Stack.Navigator initialRouteName="ListScreen"> */}
-          <Stack.Screen
-            name="HomeScreen"
-            component={HomeScreen}
-            options={{ title: 'My Lists', headerShown: false }}
-          />
-          <Stack.Screen
-            name="ListScreen"
-            component={ListScreen}
-            options={{ title: 'List Items' }}
-          />
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="List" component={ListScreen} />
         </Stack.Navigator>
-        <StatusBar style="auto" />
       </NavigationContainer>
+      <StatusBar style="auto" />
     </GestureHandlerRootView>
   );
-}
+};
 
-
-
-
-
-// import { StatusBar } from 'expo-status-bar';
-// // import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
-// // import ListScreen from './app/screens/ListScreen';
-// import HomeScreen from './app/screens/HomeScreen';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
-// export default function App() {
-//   return (
-//     <GestureHandlerRootView style={{ flex: 1 }}>
-//       {/* <ListScreen /> */}
-//       <HomeScreen />
-//       <StatusBar style="auto" />
-//     </GestureHandlerRootView>
-//   );
-// }
+export default App;

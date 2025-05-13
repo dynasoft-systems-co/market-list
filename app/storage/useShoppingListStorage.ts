@@ -1,43 +1,40 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Group } from '../models/types';
+import { List } from '../models/types';
 
-const STORAGE_KEY = 'shopping_list_groups';
+const STORAGE_KEY = 'shopping_lists';
 
 /**
- * Load groups from AsyncStorage
+ * Load shopping lists from AsyncStorage
  */
-export const loadGroups = async (): Promise<Group[]> => {
+export const loadShoppingLists = async (): Promise<List[]> => {
   try {
     const json = await AsyncStorage.getItem(STORAGE_KEY);
-    if (json) {
-      return JSON.parse(json);
-    }
-    return [];
+    return json ? JSON.parse(json) : [];
   } catch (error) {
-    console.error('Failed to load groups:', error);
+    console.error('Failed to load shopping lists:', error);
     return [];
   }
 };
 
 /**
- * Save groups to AsyncStorage
+ * Save shopping lists to AsyncStorage
  */
-export const saveGroups = async (groups: Group[]): Promise<void> => {
+export const saveShoppingLists = async (lists: List[]): Promise<void> => {
   try {
-    const json = JSON.stringify(groups);
+    const json = JSON.stringify(lists);
     await AsyncStorage.setItem(STORAGE_KEY, json);
   } catch (error) {
-    console.error('Failed to save groups:', error);
+    console.error('Failed to save shopping lists:', error);
   }
 };
 
 /**
- * Clear all stored groups (optional utility)
+ * Clear all stored shopping lists
  */
-export const clearGroups = async (): Promise<void> => {
+export const clearShoppingLists = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to clear groups:', error);
+    console.error('Failed to clear shopping lists:', error);
   }
 };

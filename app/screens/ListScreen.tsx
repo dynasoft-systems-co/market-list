@@ -3,12 +3,18 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Swipeable, PanGestureHandler } from 'react-native-gesture-handler';
 import styled from 'styled-components/native';
-import { Group, Item } from '../models/types';
-import { loadGroups, saveGroups } from '../storage/useShoppingListStorage';
+import { Group, Item, List } from '../models/types';
+import {
+  loadShoppingLists,
+  saveShoppingLists,
+} from '../storage/useShoppingListStorage';
 import AddGroupButton from '../components/AddGroupButton';
 import ItemList from '../components/ItemList';
 import uuid from 'react-native-uuid';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../App'; // ajuste o caminho se necessário
 
 const Container = styled.View`
   flex: 1;
@@ -52,43 +58,61 @@ const DragHandle = styled.TouchableOpacity`
 `;
 
 const ListScreen = () => {
-  const [groups, setGroups] = useState<Group[]>([]);
+  const route = useRoute<RouteProp<RootStackParamList, 'List'>>();
+  const CURRENT_LIST_ID = route.params.listId;
+  const [allLists, setAllLists] = useState<List[]>([]);
+  const [list, setList] = useState<List | null>(null);
   const [loading, setLoading] = useState(true);
   const gestureRef = useRef(null);
 
   useEffect(() => {
     (async () => {
-      const saved = await loadGroups();
-      setGroups(saved);
+      const loadedLists = await loadShoppingLists();
+      setAllLists(loadedLists);
+
+      const targetList =
+        loadedLists.find((l) => l.id === CURRENT_LIST_ID) ??
+        {
+          id: CURRENT_LIST_ID,
+          name: 'Nova Lista',
+          groups: [],
+        };
+
+      setList(targetList);
       setLoading(false);
     })();
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      saveGroups(groups);
+    if (!loading && list) {
+      const updatedLists = allLists.map((l) =>
+        l.id === list.id ? list : l
+      );
+      saveShoppingLists(updatedLists);
     }
-  }, [groups]);
+  }, [list]);
+
+  const updateGroups = (updateFn: (groups: Group[]) => Group[]) => {
+    if (!list) return;
+    setList({ ...list, groups: updateFn(list.groups) });
+  };
 
   const handleAddGroup = () => {
     const newGroup: Group = {
       id: uuid.v4() as string,
-      name: `Group ${groups.length + 1}`,
+      name: `Group ${list?.groups.length + 1 || 1}`,
       items: [],
     };
-    setGroups(prev => [...prev, newGroup]);
+    updateGroups((prev) => [...prev, newGroup]);
   };
 
   const handleAddItem = (groupId: string, itemName: string) => {
-    setGroups(prev =>
-      prev.map(g =>
+    updateGroups((prev) =>
+      prev.map((g) =>
         g.id === groupId
           ? {
               ...g,
-              items: [
-                ...g.items,
-                { id: uuid.v4() as string, name: itemName, done: false },
-              ],
+              items: [...g.items, { id: uuid.v4() as string, name: itemName, done: false }],
             }
           : g
       )
@@ -96,47 +120,26 @@ const ListScreen = () => {
   };
 
   const handleRemoveItem = (groupId: string, itemId: string) => {
-    setGroups(prev =>
-      prev.map(g =>
+    updateGroups((prev) =>
+      prev.map((g) =>
         g.id === groupId
-          ? { ...g, items: g.items.filter(i => i.id !== itemId) }
+          ? { ...g, items: g.items.filter((i) => i.id !== itemId) }
           : g
       )
     );
   };
 
   const handleRemoveGroup = (groupId: string) => {
-    setGroups(prev => prev.filter(g => g.id !== groupId));
-  };
-
-  const handleMoveItem = (groupId: string, itemId: string, direction: 'up' | 'down') => {
-    setGroups(prev =>
-      prev.map(g => {
-        if (g.id !== groupId) return g;
-        const index = g.items.findIndex(i => i.id === itemId);
-        if (index === -1) return g;
-
-        const newItems = [...g.items];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= newItems.length) return g;
-
-        [newItems[index], newItems[targetIndex]] = [
-          newItems[targetIndex],
-          newItems[index],
-        ];
-
-        return { ...g, items: newItems };
-      })
-    );
+    updateGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
   const handleRenameItem = (groupId: string, itemId: string, newName: string) => {
-    setGroups(prev =>
-      prev.map(group =>
+    updateGroups((prev) =>
+      prev.map((group) =>
         group.id === groupId
           ? {
               ...group,
-              items: group.items.map(item =>
+              items: group.items.map((item) =>
                 item.id === itemId ? { ...item, name: newName } : item
               ),
             }
@@ -146,12 +149,12 @@ const ListScreen = () => {
   };
 
   const handleReorderGroups = (data: Group[]) => {
-    setGroups(data);
+    updateGroups(() => data);
   };
 
   const handleReorderItems = (newItems: Item[], groupId: string) => {
-    setGroups(prev =>
-      prev.map(g => (g.id === groupId ? { ...g, items: newItems } : g))
+    updateGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, items: newItems } : g))
     );
   };
 
@@ -160,8 +163,8 @@ const ListScreen = () => {
     const [name, setName] = useState(item.name);
 
     const handleSubmit = () => {
-      setGroups(prev =>
-        prev.map(g => (g.id === item.id ? { ...g, name } : g))
+      updateGroups((prev) =>
+        prev.map((g) => (g.id === item.id ? { ...g, name } : g))
       );
       setIsEditing(false);
     };
@@ -215,7 +218,7 @@ const ListScreen = () => {
     );
   };
 
-  if (loading) {
+  if (loading || !list) {
     return (
       <View style={{ padding: 20 }}>
         <Text>Loading...</Text>
@@ -227,12 +230,11 @@ const ListScreen = () => {
     <PanGestureHandler ref={gestureRef}>
       <Container>
         <DraggableFlatList
-          data={groups}
+          data={list.groups}
           keyExtractor={(item) => item.id}
           renderItem={renderGroup}
           onDragEnd={({ data }) => handleReorderGroups(data)}
         />
-
         <AddGroupButton onPress={handleAddGroup} />
       </Container>
     </PanGestureHandler>
