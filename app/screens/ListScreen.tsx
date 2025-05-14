@@ -2,7 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Swipeable, PanGestureHandler } from 'react-native-gesture-handler';
+import uuid from 'react-native-uuid';
+import { MaterialIcons } from '@expo/vector-icons';
 import styled from 'styled-components/native';
+import { useRoute } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
 import { Group, Item, List } from '../models/types';
 import {
   loadShoppingLists,
@@ -10,52 +14,7 @@ import {
 } from '../storage/useShoppingListStorage';
 import AddGroupButton from '../components/AddGroupButton';
 import ItemList from '../components/ItemList';
-import uuid from 'react-native-uuid';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
-import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../App'; // ajuste o caminho se necessário
-
-const Container = styled.View`
-  flex: 1;
-  background-color: #f4f4f4;
-`;
-
-const GroupContainer = styled.View`
-  margin: 10px 0;
-  background-color: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  elevation: 2;
-`;
-
-const GroupHeader = styled.View`
-  padding: 12px 16px;
-  background-color: #7216f4;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const GroupInput = styled.TextInput`
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  border-bottom-width: 1px;
-  border-color: #fff;
-  margin-right: 8px;
-`;
-
-const GroupTitle = styled.Text`
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
-  flex: 1;
-`;
-
-const DragHandle = styled.TouchableOpacity`
-  padding: 4px;
-`;
+import { RootStackParamList } from '../../App';
 
 const ListScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'List'>>();
@@ -100,7 +59,7 @@ const ListScreen = () => {
   const handleAddGroup = () => {
     const newGroup: Group = {
       id: uuid.v4() as string,
-      name: `Group ${list?.groups.length + 1 || 1}`,
+      name: `Group ${(list?.groups?.length ?? 0) + 1}`,
       items: [],
     };
     updateGroups((prev) => [...prev, newGroup]);
@@ -240,5 +199,46 @@ const ListScreen = () => {
     </PanGestureHandler>
   );
 };
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #f4f4f4;
+`;
+
+const GroupContainer = styled.View`
+  margin: 10px 0;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  elevation: 2;
+`;
+
+const GroupHeader = styled.View`
+  padding: 12px 16px;
+  background-color: #7216f4;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const GroupInput = styled.TextInput`
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom-width: 1px;
+  border-color: #fff;
+  margin-right: 8px;
+`;
+
+const GroupTitle = styled.Text`
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  flex: 1;
+`;
+
+const DragHandle = styled.TouchableOpacity`
+  padding: 4px;
+`;
 
 export default ListScreen;

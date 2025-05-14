@@ -5,6 +5,14 @@ type Props = {
   onPress: () => void;
 };
 
+const AddGroupButton = ({ onPress }: Props) => {
+  return (
+    <Button onPress={onPress}>
+      <ButtonText>Add Group</ButtonText>
+    </Button>
+  );
+};
+
 const Button = styled.TouchableOpacity`
   padding: 16px;
   background-color: #7216f4;
@@ -18,13 +26,5 @@ const ButtonText = styled.Text`
   font-size: 16px;
   font-weight: bold;
 `;
-
-const AddGroupButton = ({ onPress }: Props) => {
-  return (
-    <Button onPress={onPress}>
-      <ButtonText>Add Group</ButtonText>
-    </Button>
-  );
-};
 
 export default AddGroupButton;

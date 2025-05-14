@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, Text, TouchableOpacity } from 'react-native';
+import uuid from 'react-native-uuid';
 import styled from 'styled-components/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { List } from '../models/types';
@@ -7,7 +8,6 @@ import {
   loadShoppingLists,
   saveShoppingLists,
 } from '../storage/useShoppingListStorage';
-import uuid from 'react-native-uuid';
 
 type RootStackParamList = {
   Home: undefined;
@@ -15,37 +15,6 @@ type RootStackParamList = {
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
-
-const Container = styled.View`
-  flex: 1;
-  background-color: #fff;
-  padding: 20px;
-`;
-
-const ListButton = styled.TouchableOpacity`
-  padding: 16px;
-  background-color: #eee;
-  border-radius: 8px;
-  margin-bottom: 12px;
-`;
-
-const ListName = styled.Text`
-  font-size: 16px;
-  font-weight: 500;
-`;
-
-const AddButton = styled.TouchableOpacity`
-  background-color: #7216f4;
-  padding: 16px;
-  border-radius: 8px;
-  align-items: center;
-  margin-top: 20px;
-`;
-
-const AddButtonText = styled.Text`
-  color: #fff;
-  font-weight: bold;
-`;
 
 const HomeScreen = ({ navigation }: Props) => {
   const [lists, setLists] = useState<List[]>([]);
@@ -91,5 +60,36 @@ const HomeScreen = ({ navigation }: Props) => {
     </Container>
   );
 };
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+`;
+
+const ListButton = styled.TouchableOpacity`
+  padding: 16px;
+  background-color: #eee;
+  border-radius: 8px;
+  margin-bottom: 12px;
+`;
+
+const ListName = styled.Text`
+  font-size: 16px;
+  font-weight: 500;
+`;
+
+const AddButton = styled.TouchableOpacity`
+  background-color: #7216f4;
+  padding: 16px;
+  border-radius: 8px;
+  align-items: center;
+  margin-top: 20px;
+`;
+
+const AddButtonText = styled.Text`
+  color: #fff;
+  font-weight: bold;
+`;
 
 export default HomeScreen;
