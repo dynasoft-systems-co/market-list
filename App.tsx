@@ -1,7 +1,9 @@
 import React from "react";
+import { Text, TouchableOpacity } from "react-native";
 import "react-native-gesture-handler";
-import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StatusBar } from "expo-status-bar";
+import { MaterialIcons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./app/screens/HomeScreen";
@@ -18,9 +20,39 @@ const App = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Home">
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="List" component={ListScreen} />
+        <Stack.Navigator
+          screenOptions={
+            {
+              // headerStyle: { backgroundColor: "#7216f4" },
+              // headerTintColor: "#fff",
+              // headerTitleStyle: { fontWeight: "bold" },
+            }
+          }
+          initialRouteName="Home"
+        >
+          <Stack.Screen
+            options={{
+              title: "Market List",
+              headerRight: () => (
+                <TouchableOpacity onPress={() => console.log("Ação")}>
+                  <MaterialIcons name="manage-accounts" size={24} color="#333" />
+                </TouchableOpacity>
+              ),
+            }}
+            name="Home"
+            component={HomeScreen}
+          />
+          <Stack.Screen
+            options={{
+              headerRight: () => (
+                <TouchableOpacity onPress={() => console.log("Ação")}>
+                  <MaterialIcons name="more-vert" size={24} color="#333" />
+                </TouchableOpacity>
+              ),
+            }}
+            name="List"
+            component={ListScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" />

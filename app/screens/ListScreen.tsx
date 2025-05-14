@@ -1,41 +1,36 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
-import { Swipeable, PanGestureHandler } from 'react-native-gesture-handler';
-import uuid from 'react-native-uuid';
-import { MaterialIcons } from '@expo/vector-icons';
-import styled from 'styled-components/native';
-import { useRoute } from '@react-navigation/native';
-import { RouteProp } from '@react-navigation/native';
-import { Group, Item, List } from '../models/types';
-import {
-  loadShoppingLists,
-  saveShoppingLists,
-} from '../storage/useShoppingListStorage';
-import AddGroupButton from '../components/AddGroupButton';
-import ItemList from '../components/ItemList';
-import { RootStackParamList } from '../../App';
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import DraggableFlatList, { RenderItemParams } from "react-native-draggable-flatlist";
+import { Swipeable, PanGestureHandler } from "react-native-gesture-handler";
+import uuid from "react-native-uuid";
+import { MaterialIcons } from "@expo/vector-icons";
+import styled from "styled-components/native";
+import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
+import { Group, Item, List } from "../models/types";
+import { loadShoppingLists, saveShoppingLists } from "../storage/useShoppingListStorage";
+import AddGroupButton from "../components/AddGroupButton";
+import ItemList from "../components/ItemList";
+import { RootStackParamList } from "../../App";
 
 const ListScreen = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'List'>>();
+  const route = useRoute<RouteProp<RootStackParamList, "List">>();
   const CURRENT_LIST_ID = route.params.listId;
   const [allLists, setAllLists] = useState<List[]>([]);
   const [list, setList] = useState<List | null>(null);
   const [loading, setLoading] = useState(true);
   const gestureRef = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
       const loadedLists = await loadShoppingLists();
       setAllLists(loadedLists);
 
-      const targetList =
-        loadedLists.find((l) => l.id === CURRENT_LIST_ID) ??
-        {
-          id: CURRENT_LIST_ID,
-          name: 'Nova Lista',
-          groups: [],
-        };
+      const targetList = loadedLists.find((l) => l.id === CURRENT_LIST_ID) ?? {
+        id: CURRENT_LIST_ID,
+        name: "Nova Lista",
+        groups: [],
+      };
 
       setList(targetList);
       setLoading(false);
@@ -44,12 +39,16 @@ const ListScreen = () => {
 
   useEffect(() => {
     if (!loading && list) {
-      const updatedLists = allLists.map((l) =>
-        l.id === list.id ? list : l
-      );
+      const updatedLists = allLists.map((l) => (l.id === list.id ? list : l));
       saveShoppingLists(updatedLists);
     }
   }, [list]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: list?.name,
+    });
+  }, [navigation, list]);
 
   const updateGroups = (updateFn: (groups: Group[]) => Group[]) => {
     if (!list) return;
@@ -79,13 +78,7 @@ const ListScreen = () => {
   };
 
   const handleRemoveItem = (groupId: string, itemId: string) => {
-    updateGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId
-          ? { ...g, items: g.items.filter((i) => i.id !== itemId) }
-          : g
-      )
-    );
+    updateGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((i) => i.id !== itemId) } : g)));
   };
 
   const handleRemoveGroup = (groupId: string) => {
@@ -98,9 +91,7 @@ const ListScreen = () => {
         group.id === groupId
           ? {
               ...group,
-              items: group.items.map((item) =>
-                item.id === itemId ? { ...item, name: newName } : item
-              ),
+              items: group.items.map((item) => (item.id === itemId ? { ...item, name: newName } : item)),
             }
           : group
       )
@@ -112,9 +103,7 @@ const ListScreen = () => {
   };
 
   const handleReorderItems = (newItems: Item[], groupId: string) => {
-    updateGroups((prev) =>
-      prev.map((g) => (g.id === groupId ? { ...g, items: newItems } : g))
-    );
+    updateGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, items: newItems } : g)));
   };
 
   const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
@@ -122,20 +111,18 @@ const ListScreen = () => {
     const [name, setName] = useState(item.name);
 
     const handleSubmit = () => {
-      updateGroups((prev) =>
-        prev.map((g) => (g.id === item.id ? { ...g, name } : g))
-      );
+      updateGroups((prev) => prev.map((g) => (g.id === item.id ? { ...g, name } : g)));
       setIsEditing(false);
     };
 
     const renderRightActions = () => (
       <TouchableOpacity
         style={{
-          backgroundColor: 'red',
-          justifyContent: 'center',
-          alignItems: 'center',
+          backgroundColor: "red",
+          justifyContent: "center",
+          alignItems: "center",
           width: 80,
-          height: '100%',
+          height: "100%",
         }}
         onPress={() => handleRemoveGroup(item.id)}
       >
@@ -147,31 +134,13 @@ const ListScreen = () => {
       <Swipeable renderRightActions={renderRightActions}>
         <GroupContainer>
           <GroupHeader>
-            {isEditing ? (
-              <GroupInput
-                value={name}
-                onChangeText={setName}
-                onSubmitEditing={handleSubmit}
-                onBlur={handleSubmit}
-                autoFocus
-              />
-            ) : (
-              <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
-            )}
+            {isEditing ? <GroupInput value={name} onChangeText={setName} onSubmitEditing={handleSubmit} onBlur={handleSubmit} autoFocus /> : <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>}
             <DragHandle onPressIn={drag}>
               <MaterialIcons name="drag-handle" size={20} color="#fff" />
             </DragHandle>
           </GroupHeader>
 
-          <ItemList
-            items={item.items}
-            groupId={item.id}
-            onReorder={(newItems) => handleReorderItems(newItems, item.id)}
-            onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
-            onRemoveItem={handleRemoveItem}
-            onAddItem={handleAddItem}
-            parentGestureHandlerRef={gestureRef}
-          />
+          <ItemList items={item.items} groupId={item.id} onReorder={(newItems) => handleReorderItems(newItems, item.id)} onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)} onRemoveItem={handleRemoveItem} onAddItem={handleAddItem} parentGestureHandlerRef={gestureRef} />
         </GroupContainer>
       </Swipeable>
     );
@@ -188,12 +157,7 @@ const ListScreen = () => {
   return (
     <PanGestureHandler ref={gestureRef}>
       <Container>
-        <DraggableFlatList
-          data={list.groups}
-          keyExtractor={(item) => item.id}
-          renderItem={renderGroup}
-          onDragEnd={({ data }) => handleReorderGroups(data)}
-        />
+        <DraggableFlatList data={list.groups} keyExtractor={(item) => item.id} renderItem={renderGroup} onDragEnd={({ data }) => handleReorderGroups(data)} />
         <AddGroupButton onPress={handleAddGroup} />
       </Container>
     </PanGestureHandler>

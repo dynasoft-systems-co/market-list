@@ -44,15 +44,13 @@ const HomeScreen = ({ navigation }: Props) => {
 
   return (
     <Container>
-      <FlatList
-        data={lists}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ListButton onPress={() => handleOpenList(item.id)}>
+      {
+        lists.map(item => (
+          <ListButton onPress={() => handleOpenList(item.id)} key={item.id}>
             <ListName>{item.name}</ListName>
           </ListButton>
-        )}
-      />
+        ))
+      }
 
       <AddButton onPress={handleAddList}>
         <AddButtonText>Create New List</AddButtonText>
@@ -61,7 +59,7 @@ const HomeScreen = ({ navigation }: Props) => {
   );
 };
 
-const Container = styled.View`
+const Container = styled.ScrollView`
   flex: 1;
   background-color: #fff;
   padding: 20px;
