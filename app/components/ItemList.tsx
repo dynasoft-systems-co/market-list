@@ -11,21 +11,31 @@ type Props = {
   groupId: string;
   onReorder: (newItems: Item[]) => void;
   onRemoveItem: (groupId: string, itemId: string) => void;
-  onRenameItem: (itemId: string, newName: string) => void;
+  onRenameItem: (groupId: string, itemId: string, newName: string) => void;
   onAddItem: (groupId: string, itemName: string) => void;
+  onToggleDone: (groupId: string, itemId: string) => void;
   parentGestureHandlerRef: React.Ref<any>;
 };
 
-const ItemList = ({ items, groupId, onRemoveItem, onRenameItem, onReorder, onAddItem, parentGestureHandlerRef }: Props) => {
+const ItemList = ({
+  items,
+  groupId,
+  onRemoveItem,
+  onRenameItem,
+  onReorder,
+  onAddItem,
+  onToggleDone,
+  parentGestureHandlerRef,
+}: Props) => {
   const renderItem = ({ item, drag, isActive }: RenderItemParams<Item>) => {
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState(item.name);
-  
+
     const handleEndEditing = () => {
-      onRenameItem(item.id, text.trim());
+      onRenameItem(groupId, item.id, text.trim());
       setEditing(false);
     };
-  
+
     const renderRightActions = () => (
       <TouchableOpacity
         style={{
@@ -40,10 +50,18 @@ const ItemList = ({ items, groupId, onRemoveItem, onRenameItem, onReorder, onAdd
         <MaterialIcons name="delete" size={24} color="#fff" />
       </TouchableOpacity>
     );
-  
+
     return (
       <Swipeable renderRightActions={renderRightActions}>
         <ItemContainer isActive={isActive}>
+          <CheckBoxTouchable onPress={() => onToggleDone(groupId, item.id)}>
+            <MaterialIcons
+              name={item.done ? 'check-box' : 'check-box-outline-blank'}
+              size={24}
+              color={item.done ? '#7216f4' : '#ccc'}
+            />
+          </CheckBoxTouchable>
+
           {editing ? (
             <StyledInput
               value={text}
@@ -57,6 +75,7 @@ const ItemList = ({ items, groupId, onRemoveItem, onRenameItem, onReorder, onAdd
               <ItemText>{item.name}</ItemText>
             </TouchableOpacity>
           )}
+
           <DragHandle onPressIn={drag}>
             <MaterialIcons name="drag-handle" size={20} color="#aaa" />
           </DragHandle>
@@ -91,7 +110,7 @@ interface ItemContainerProps {
 const ItemContainer = styled.View<ItemContainerProps>`
   padding: 10px;
   margin: 4px 16px;
-  background-color: ${({ isActive }: ItemContainerProps) => (isActive ? '#e0e0e0' : 'white')};
+  background-color: ${({ isActive }) => (isActive ? '#e0e0e0' : 'white')};
   border-radius: 8px;
   flex-direction: row;
   align-items: center;
@@ -103,13 +122,17 @@ const ItemText = styled.Text`
   flex: 1;
 `;
 
+const StyledInput = styled.TextInput`
+  flex: 1;
+  font-size: 14px;
+`;
+
 const DragHandle = styled.TouchableOpacity`
   padding: 8px;
 `;
 
-const StyledInput = styled.TextInput`
-  flex: 1;
-  font-size: 14px;
+const CheckBoxTouchable = styled.TouchableOpacity`
+  padding-right: 8px;
 `;
 
 const AddButton = styled.TouchableOpacity`

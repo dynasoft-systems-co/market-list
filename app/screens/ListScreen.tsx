@@ -10,6 +10,7 @@ import { Group, Item, List } from "../models/types";
 import { loadShoppingLists, saveShoppingLists } from "../storage/useShoppingListStorage";
 import AddGroupButton from "../components/AddGroupButton";
 import ItemList from "../components/ItemList";
+import ItemRow from "../components/ItemRow";
 import { RootStackParamList } from "../../App";
 
 const ListScreen = () => {
@@ -18,6 +19,7 @@ const ListScreen = () => {
   const [allLists, setAllLists] = useState<List[]>([]);
   const [list, setList] = useState<List | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDoneItems, setShowDoneItems] = useState(false);
   const gestureRef = useRef(null);
   const navigation = useNavigation();
 
@@ -78,7 +80,9 @@ const ListScreen = () => {
   };
 
   const handleRemoveItem = (groupId: string, itemId: string) => {
-    updateGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((i) => i.id !== itemId) } : g)));
+    updateGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((i) => i.id !== itemId) } : g))
+    );
   };
 
   const handleRemoveGroup = (groupId: string) => {
@@ -106,6 +110,21 @@ const ListScreen = () => {
     updateGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, items: newItems } : g)));
   };
 
+  const handleToggleDone = (groupId: string, itemId: string) => {
+    updateGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              items: g.items.map((item) =>
+                item.id === itemId ? { ...item, done: !item.done } : item
+              ),
+            }
+          : g
+      )
+    );
+  };
+
   const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(item.name);
@@ -130,19 +149,82 @@ const ListScreen = () => {
       </TouchableOpacity>
     );
 
+    const undoneItems = item.items.filter((i) => !i.done);
+
     return (
       <Swipeable renderRightActions={renderRightActions}>
         <GroupContainer>
           <GroupHeader>
-            {isEditing ? <GroupInput value={name} onChangeText={setName} onSubmitEditing={handleSubmit} onBlur={handleSubmit} autoFocus /> : <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>}
+            {isEditing ? (
+              <GroupInput
+                value={name}
+                onChangeText={setName}
+                onSubmitEditing={handleSubmit}
+                onBlur={handleSubmit}
+                autoFocus
+              />
+            ) : (
+              <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
+            )}
             <DragHandle onPressIn={drag}>
               <MaterialIcons name="drag-handle" size={20} color="#fff" />
             </DragHandle>
           </GroupHeader>
 
-          <ItemList items={item.items} groupId={item.id} onReorder={(newItems) => handleReorderItems(newItems, item.id)} onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)} onRemoveItem={handleRemoveItem} onAddItem={handleAddItem} parentGestureHandlerRef={gestureRef} />
+          <ItemList
+            items={undoneItems}
+            groupId={item.id}
+            onReorder={(newItems) => handleReorderItems(newItems, item.id)}
+            onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
+            onRemoveItem={handleRemoveItem}
+            onAddItem={handleAddItem}
+            onToggleDone={handleToggleDone}
+            parentGestureHandlerRef={gestureRef}
+          />
         </GroupContainer>
       </Swipeable>
+    );
+  };
+
+  const renderMarkedItems = () => {
+    const markedGroups = list?.groups
+      .map((group) => ({
+        id: group.id,
+        name: group.name,
+        items: group.items.filter((item) => item.done),
+      }))
+      .filter((g) => g.items.length > 0);
+
+    if (!markedGroups || markedGroups.length === 0) return null;
+
+    return (
+      <MarkedContainer>
+        <TouchableOpacity onPress={() => setShowDoneItems((prev) => !prev)}>
+          <MarkedHeader>
+            <MarkedTitle>Itens Marcados</MarkedTitle>
+            <MaterialIcons name={showDoneItems ? "expand-less" : "expand-more"} size={24} color="#7216f4" />
+          </MarkedHeader>
+        </TouchableOpacity>
+
+        {showDoneItems &&
+          markedGroups.map((group) => (
+            <GroupContainer key={group.id}>
+              <GroupHeader style={{ backgroundColor: "#ccc" }}>
+                <GroupTitle style={{ color: "#333" }}>{group.name}</GroupTitle>
+              </GroupHeader>
+              {group.items.map((item) => (
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  groupId={group.id}
+                  onToggleDone={() => handleToggleDone(group.id, item.id)}
+                  onRename={(newName) => handleRenameItem(group.id, item.id, newName)}
+                  onRemove={() => handleRemoveItem(group.id, item.id)}
+                />
+              ))}
+            </GroupContainer>
+          ))}
+      </MarkedContainer>
     );
   };
 
@@ -157,8 +239,14 @@ const ListScreen = () => {
   return (
     <PanGestureHandler ref={gestureRef}>
       <Container>
-        <DraggableFlatList data={list.groups} keyExtractor={(item) => item.id} renderItem={renderGroup} onDragEnd={({ data }) => handleReorderGroups(data)} />
+        <DraggableFlatList
+          data={list.groups}
+          keyExtractor={(item) => item.id}
+          renderItem={renderGroup}
+          onDragEnd={({ data }) => handleReorderGroups(data)}
+        />
         <AddGroupButton onPress={handleAddGroup} />
+        {renderMarkedItems()}
       </Container>
     </PanGestureHandler>
   );
@@ -203,6 +291,23 @@ const GroupTitle = styled.Text`
 
 const DragHandle = styled.TouchableOpacity`
   padding: 4px;
+`;
+
+const MarkedContainer = styled.View`
+  margin: 10px 16px 30px;
+`;
+
+const MarkedHeader = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+`;
+
+const MarkedTitle = styled.Text`
+  font-size: 16px;
+  color: #7216f4;
+  font-weight: bold;
 `;
 
 export default ListScreen;
