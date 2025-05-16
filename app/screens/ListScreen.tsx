@@ -62,6 +62,7 @@ const ListScreen = () => {
       id: uuid.v4() as string,
       name: `Group ${(list?.groups?.length ?? 0) + 1}`,
       items: [],
+      collapsed: false,
     };
     updateGroups((prev) => [...prev, newGroup]);
   };
@@ -128,6 +129,7 @@ const ListScreen = () => {
   const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(item.name);
+    const [collapsed, setCollapsed] = useState(item.collapsed);
 
     const handleSubmit = () => {
       updateGroups((prev) => prev.map((g) => (g.id === item.id ? { ...g, name } : g)));
@@ -152,9 +154,12 @@ const ListScreen = () => {
     const undoneItems = item.items.filter((i) => !i.done);
 
     return (
-      <Swipeable renderRightActions={renderRightActions}>
+      <Swipeable renderRightActions={renderRightActions} onSwipeableOpenStartDrag={() => setCollapsed((prev) => !prev)}>
         <GroupContainer>
           <GroupHeader>
+            <DragHandle onPressIn={drag}>
+              <MaterialIcons name="drag-handle" size={20} color="#fff" />
+            </DragHandle>
             {isEditing ? (
               <GroupInput
                 value={name}
@@ -166,21 +171,23 @@ const ListScreen = () => {
             ) : (
               <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
             )}
-            <DragHandle onPressIn={drag}>
-              <MaterialIcons name="drag-handle" size={20} color="#fff" />
-            </DragHandle>
+            <TouchableOpacity onPress={() => setCollapsed((prev) => !prev)}>
+              <MaterialIcons name={!collapsed ? "expand-less" : "expand-more"} size={20} color="#fff" />
+            </TouchableOpacity>
           </GroupHeader>
 
-          <ItemList
-            items={undoneItems}
-            groupId={item.id}
-            onReorder={(newItems) => handleReorderItems(newItems, item.id)}
-            onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
-            onRemoveItem={handleRemoveItem}
-            onAddItem={handleAddItem}
-            onToggleDone={handleToggleDone}
-            parentGestureHandlerRef={gestureRef}
-          />
+            {!collapsed && (
+              <ItemList
+                items={undoneItems}
+                groupId={item.id}
+                onReorder={(newItems) => handleReorderItems(newItems, item.id)}
+                onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
+                onRemoveItem={handleRemoveItem}
+                onAddItem={handleAddItem}
+                onToggleDone={handleToggleDone}
+                parentGestureHandlerRef={gestureRef}
+              />
+            )}
         </GroupContainer>
       </Swipeable>
     );

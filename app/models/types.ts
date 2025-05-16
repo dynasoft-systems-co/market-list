@@ -8,6 +8,7 @@ export interface Group {
   id: string;
   name: string;
   items: Item[];
+  collapsed: boolean;
 }
 
 export interface List {

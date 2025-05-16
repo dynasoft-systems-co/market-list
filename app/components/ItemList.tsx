@@ -54,6 +54,10 @@ const ItemList = ({
     return (
       <Swipeable renderRightActions={renderRightActions}>
         <ItemContainer isActive={isActive}>
+          <DragHandle onPressIn={drag}>
+            <MaterialIcons name="drag-handle" size={20} color="#aaa" />
+          </DragHandle>
+
           <CheckBoxTouchable onPress={() => onToggleDone(groupId, item.id)}>
             <MaterialIcons
               name={item.done ? 'check-box' : 'check-box-outline-blank'}
@@ -76,9 +80,6 @@ const ItemList = ({
             </TouchableOpacity>
           )}
 
-          <DragHandle onPressIn={drag}>
-            <MaterialIcons name="drag-handle" size={20} color="#aaa" />
-          </DragHandle>
         </ItemContainer>
       </Swipeable>
     );
@@ -110,7 +111,7 @@ interface ItemContainerProps {
 const ItemContainer = styled.View<ItemContainerProps>`
   padding: 10px;
   margin: 4px 16px;
-  background-color: ${({ isActive }) => (isActive ? '#e0e0e0' : 'white')};
+  background-color: ${({ isActive }: ItemContainerProps) => (isActive ? '#e0e0e0' : 'white')};
   border-radius: 8px;
   flex-direction: row;
   align-items: center;
