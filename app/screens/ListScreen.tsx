@@ -139,7 +139,7 @@ const ListScreen = () => {
     const renderRightActions = () => (
       <TouchableOpacity
         style={{
-          backgroundColor: "red",
+          // backgroundColor: "red",
           justifyContent: "center",
           alignItems: "center",
           width: 80,
@@ -147,7 +147,7 @@ const ListScreen = () => {
         }}
         onPress={() => handleRemoveGroup(item.id)}
       >
-        <MaterialIcons name="delete" size={24} color="#fff" />
+        <MaterialIcons name="delete" size={24} color="#7216f4" />
       </TouchableOpacity>
     );
 
@@ -157,9 +157,9 @@ const ListScreen = () => {
       <Swipeable renderRightActions={renderRightActions} onSwipeableOpenStartDrag={() => setCollapsed((prev) => !prev)}>
         <GroupContainer>
           <GroupHeader>
-            <DragHandle onPressIn={drag}>
-              <MaterialIcons name="drag-handle" size={20} color="#fff" />
-            </DragHandle>
+            <TouchableOpacity onPress={() => setCollapsed((prev) => !prev)}>
+              <MaterialIcons name={!collapsed ? "expand-less" : "expand-more"} size={20} color="#7216f4" />
+            </TouchableOpacity>
             {isEditing ? (
               <GroupInput
                 value={name}
@@ -171,9 +171,9 @@ const ListScreen = () => {
             ) : (
               <GroupTitle onPress={() => setIsEditing(true)}>{item.name}</GroupTitle>
             )}
-            <TouchableOpacity onPress={() => setCollapsed((prev) => !prev)}>
-              <MaterialIcons name={!collapsed ? "expand-less" : "expand-more"} size={20} color="#fff" />
-            </TouchableOpacity>
+            <DragHandle onPressIn={drag}>
+              <MaterialIcons name="drag-handle" size={20} color="#7216f4" />
+            </DragHandle>
           </GroupHeader>
 
             {!collapsed && (
@@ -216,7 +216,9 @@ const ListScreen = () => {
         {showDoneItems &&
           markedGroups.map((group) => (
             <GroupContainer key={group.id}>
-              <GroupHeader style={{ backgroundColor: "#ccc" }}>
+              <GroupHeader style={{
+                //  backgroundColor: "#ccc"
+                  }}>
                 <GroupTitle style={{ color: "#333" }}>{group.name}</GroupTitle>
               </GroupHeader>
               {group.items.map((item) => (
@@ -261,36 +263,39 @@ const ListScreen = () => {
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f4f4f4;
+  background-color: white;
 `;
 
 const GroupContainer = styled.View`
   margin: 10px 0;
-  background-color: #fff;
+  /* background-color: #fff; */
   border-radius: 12px;
   overflow: hidden;
-  elevation: 2;
+  /* elevation: 2; */
 `;
 
 const GroupHeader = styled.View`
   padding: 12px 16px;
-  background-color: #7216f4;
+  /* background-color: #7216f4; */
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 `;
 
 const GroupInput = styled.TextInput`
-  color: #fff;
+  /* color: #fff; */
+  color: #7216f4;
   font-size: 16px;
   font-weight: bold;
   border-bottom-width: 1px;
-  border-color: #fff;
+  /* border-color: #fff; */
   margin-right: 8px;
+  flex: 1;
 `;
 
 const GroupTitle = styled.Text`
-  color: #fff;
+  /* color: #fff; */
+  color: #7216f4;
   font-size: 16px;
   font-weight: bold;
   flex: 1;
@@ -313,7 +318,7 @@ const MarkedHeader = styled.View`
 
 const MarkedTitle = styled.Text`
   font-size: 16px;
-  color: #7216f4;
+  /* color: #7216f4; */
   font-weight: bold;
 `;
 

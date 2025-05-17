@@ -55,7 +55,7 @@ const ItemRow = ({ item, onToggleDone, onRename, onRemove }: Props) => {
 const Container = styled.View`
   padding: 10px;
   margin: 4px 16px;
-  background-color: #f0f0f0;
+  /* background-color: #f0f0f0; */
   border-radius: 8px;
   flex-direction: row;
   align-items: center;
