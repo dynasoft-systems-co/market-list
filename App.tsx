@@ -1,6 +1,7 @@
+import "react-native-gesture-handler";
+
 import React from "react";
 import { Text, TouchableOpacity } from "react-native";
-import "react-native-gesture-handler";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";

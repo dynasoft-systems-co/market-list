@@ -54,7 +54,7 @@ const ItemList = ({
     return (
       <Swipeable renderRightActions={renderRightActions}>
         <ItemContainer isActive={isActive}>
-          <CheckBoxTouchable onPress={() => onToggleDone(groupId, item.id)}>
+          <CheckBoxTouchable style={{width:40}} onPress={() => onToggleDone(groupId, item.id)}>
             <MaterialIcons
               name={item.done ? 'check-box' : 'check-box-outline-blank'}
               size={24}
@@ -109,7 +109,9 @@ interface ItemContainerProps {
 }
 
 const ItemContainer = styled.View<ItemContainerProps>`
-  padding: 10px;
+  /* padding: 10px; */
+  padding-left: 30px;
+  padding-right: 30px;
   margin: 4px 16px;
   /* background-color: ${({ isActive }: ItemContainerProps) => (isActive ? '#e0e0e0' : 'white')}; */
   border-radius: 8px;

@@ -10,6 +10,7 @@ import { Group, Item, List } from "../models/types";
 import { loadShoppingLists, saveShoppingLists } from "../storage/useShoppingListStorage";
 import AddGroupButton from "../components/AddGroupButton";
 import ItemList from "../components/ItemList";
+import ItemRow from "../components/ItemRow";
 import { RootStackParamList } from "../../App";
 
 const ListScreen = () => {
@@ -18,6 +19,7 @@ const ListScreen = () => {
   const [allLists, setAllLists] = useState<List[]>([]);
   const [list, setList] = useState<List | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDoneItems, setShowDoneItems] = useState(false);
   const gestureRef = useRef(null);
   const navigation = useNavigation();
 
@@ -149,12 +151,14 @@ const ListScreen = () => {
       </TouchableOpacity>
     );
 
+    const undoneItems = item.items.filter((i) => !i.done);
+
     return (
       <Swipeable renderRightActions={renderRightActions} onSwipeableOpenStartDrag={() => setCollapsed((prev) => !prev)}>
         <GroupContainer>
           <GroupHeader>
-            <TouchableOpacity style={{width:40}} onPress={() => setCollapsed((prev) => !prev)}>
-              <MaterialIcons name={!collapsed ? "expand-less" : "expand-more"} size={30} color="#7216f4" />
+            <TouchableOpacity onPress={() => setCollapsed((prev) => !prev)}>
+              <MaterialIcons name={!collapsed ? "expand-less" : "expand-more"} size={20} color="#7216f4" />
             </TouchableOpacity>
             {isEditing ? (
               <GroupInput
@@ -174,7 +178,7 @@ const ListScreen = () => {
 
             {!collapsed && (
               <ItemList
-                items={item.items}
+                items={undoneItems}
                 groupId={item.id}
                 onReorder={(newItems) => handleReorderItems(newItems, item.id)}
                 onRenameItem={(itemId, newName) => handleRenameItem(item.id, itemId, newName)}
@@ -186,6 +190,50 @@ const ListScreen = () => {
             )}
         </GroupContainer>
       </Swipeable>
+    );
+  };
+
+  const renderMarkedItems = () => {
+    const markedGroups = list?.groups
+      .map((group) => ({
+        id: group.id,
+        name: group.name,
+        items: group.items.filter((item) => item.done),
+      }))
+      .filter((g) => g.items.length > 0);
+
+    if (!markedGroups || markedGroups.length === 0) return null;
+
+    return (
+      <MarkedContainer>
+        <TouchableOpacity onPress={() => setShowDoneItems((prev) => !prev)}>
+          <MarkedHeader>
+            <MarkedTitle>Itens Marcados</MarkedTitle>
+            <MaterialIcons name={showDoneItems ? "expand-less" : "expand-more"} size={24} color="#7216f4" />
+          </MarkedHeader>
+        </TouchableOpacity>
+
+        {showDoneItems &&
+          markedGroups.map((group) => (
+            <GroupContainer key={group.id}>
+              <GroupHeader style={{
+                //  backgroundColor: "#ccc"
+                  }}>
+                <GroupTitle style={{ color: "#333" }}>{group.name}</GroupTitle>
+              </GroupHeader>
+              {group.items.map((item) => (
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  groupId={group.id}
+                  onToggleDone={() => handleToggleDone(group.id, item.id)}
+                  onRename={(newName) => handleRenameItem(group.id, item.id, newName)}
+                  onRemove={() => handleRemoveItem(group.id, item.id)}
+                />
+              ))}
+            </GroupContainer>
+          ))}
+      </MarkedContainer>
     );
   };
 
@@ -205,12 +253,9 @@ const ListScreen = () => {
           keyExtractor={(item) => item.id}
           renderItem={renderGroup}
           onDragEnd={({ data }) => handleReorderGroups(data)}
-          ListFooterComponent={
-            <View style={{ paddingVertical: 20 }}>
-              <AddGroupButton onPress={handleAddGroup} />
-            </View>
-          }
         />
+        <AddGroupButton onPress={handleAddGroup} />
+        {renderMarkedItems()}
       </Container>
     </PanGestureHandler>
   );
@@ -240,7 +285,7 @@ const GroupHeader = styled.View`
 const GroupInput = styled.TextInput`
   /* color: #fff; */
   color: #7216f4;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: bold;
   border-bottom-width: 1px;
   /* border-color: #fff; */
@@ -251,7 +296,7 @@ const GroupInput = styled.TextInput`
 const GroupTitle = styled.Text`
   /* color: #fff; */
   color: #7216f4;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: bold;
   flex: 1;
 `;
