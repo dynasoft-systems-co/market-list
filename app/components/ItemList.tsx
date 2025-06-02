@@ -77,7 +77,7 @@ const ItemList = ({
           )}
 
           <DragHandle onPressIn={drag}>
-            <MaterialIcons name="drag-handle" size={20} color="#aaa" />
+            <MaterialIcons name="drag-handle" size={24} color="#aaa" />
           </DragHandle>
 
         </ItemContainer>
@@ -110,8 +110,8 @@ interface ItemContainerProps {
 
 const ItemContainer = styled.View<ItemContainerProps>`
   /* padding: 10px; */
-  padding-left: 30px;
-  padding-right: 30px;
+  /* padding-left: 30px; */
+  /* padding-right: 30px; */
   margin: 4px 16px;
   /* background-color: ${({ isActive }: ItemContainerProps) => (isActive ? '#e0e0e0' : 'white')}; */
   border-radius: 8px;

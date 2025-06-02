@@ -9,6 +9,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./app/screens/HomeScreen";
 import ListScreen from "./app/screens/ListScreen";
+import NewListScreen from "./app/screens/NewListScreen";
+import GroupListScreen from "./app/screens/GroupListScreen";
 
 export type RootStackParamList = {
   Home: undefined;
@@ -53,6 +55,21 @@ const App = () => {
             }}
             name="List"
             component={ListScreen}
+          />
+          <Stack.Screen
+            name="New List"
+            component={NewListScreen}
+          />
+          <Stack.Screen
+            options={{
+              headerRight: () => (
+                <TouchableOpacity onPress={() => console.log("Ação")}>
+                  <MaterialIcons name="more-vert" size={24} color="#333" />
+                </TouchableOpacity>
+              ),
+            }}
+            name="GroupList"
+            component={GroupListScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>

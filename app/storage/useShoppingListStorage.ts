@@ -4,6 +4,19 @@ import { List } from '../models/types';
 const STORAGE_KEY = 'shopping_lists';
 
 /**
+ * Count shopping lists from AsyncStorage
+ */
+export const countShoppingLists = async (): Promise<number> => {
+  try {
+    const json = await AsyncStorage.getItem(STORAGE_KEY);
+    return json ? (JSON.parse(json) as List[]).length + 1 : 1;
+  } catch (error) {
+    console.error('Failed to load shopping lists:', error);
+    return 0;
+  }
+};
+
+/**
  * Load shopping lists from AsyncStorage
  */
 export const loadShoppingLists = async (): Promise<List[]> => {
@@ -13,6 +26,19 @@ export const loadShoppingLists = async (): Promise<List[]> => {
   } catch (error) {
     console.error('Failed to load shopping lists:', error);
     return [];
+  }
+};
+
+/**
+ * Insert shopping list to AsyncStorage
+ */
+export const insertShoppingLists = async (newList: List): Promise<void> => {
+  try {
+    const lists = await loadShoppingLists();
+    const updated = [...lists, newList];
+    await saveShoppingLists(updated);
+  } catch (error) {
+    console.error('Failed to save shopping lists:', error);
   }
 };
 
