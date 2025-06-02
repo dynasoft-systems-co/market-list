@@ -57,7 +57,7 @@ const App = () => {
             component={ListScreen}
           />
           <Stack.Screen
-            name="New List"
+            name="NewList"
             component={NewListScreen}
           />
           <Stack.Screen
