@@ -3,7 +3,7 @@ import { View, FlatList, Text, TouchableOpacity } from 'react-native';
 import uuid from 'react-native-uuid';
 import styled from 'styled-components/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { List } from '../models/types';
+import { GroupList } from '../models/types';
 import {
   loadShoppingLists,
   saveShoppingLists,
@@ -17,7 +17,7 @@ type RootStackParamList = {
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen = ({ navigation }: Props) => {
-  const [lists, setLists] = useState<List[]>([]);
+  const [lists, setLists] = useState<GroupList[]>([]);
 
   useEffect(() => {
     (async () => {

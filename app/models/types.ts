@@ -7,17 +7,19 @@ export interface Item {
   order: number;
 }
 
-export interface Group {
+export interface List {
   id: string;
   name: string;
   items: Item[];
+}
+
+export interface OrderableList extends List {
   collapsed: boolean;
   order: number;
 }
 
-export interface List {
+export interface GroupList {
   id: string;
   name: string;
-  groups: Group[];
-  type: ListType;
+  groups: OrderableList[];
 }

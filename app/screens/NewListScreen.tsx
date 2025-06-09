@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
-import uuid from 'react-native-uuid';
-import styled from 'styled-components/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { List, ListType } from '../models/types';
-import {
-  countShoppingLists,
-  insertShoppingLists,
-} from '../storage/useShoppingListStorage';
+import React, { useEffect, useState } from "react";
+import { View, Text } from "react-native";
+import uuid from "react-native-uuid";
+import styled from "styled-components/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { GroupList, List, ListType } from "../models/types";
+import { countShoppingLists, insertShoppingLists } from "../storage/useShoppingListStorage";
+import { insertGroupLists } from "../storage/useGroupListStorage";
 
 type RootStackParamList = {
   Home: undefined;
   List: { listId: string };
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 const NewListScreen = ({ navigation }: Props) => {
   const [name, setName] = useState("list");
@@ -28,38 +26,39 @@ const NewListScreen = ({ navigation }: Props) => {
   }, []);
 
   const handleAddList = async () => {
-    const newList: List = {
-      id: uuid.v4() as string,
-      name,
-      groups: [],
-      type,
-    };
-    await insertShoppingLists(newList);
-    navigation.navigate('List', { listId: newList.id });
+    if (type === "group") {
+      const newList: GroupList = {
+        id: uuid.v4() as string,
+        name,
+        groups: [],
+      };
+
+      await insertGroupLists(newList);
+      navigation.navigate("GroupList", { listId: newList.id });
+    } else {
+      const newList: List = {
+        id: uuid.v4() as string,
+        name,
+        items: [],
+      };
+
+      await insertShoppingLists(newList);
+      navigation.navigate("List", { listId: newList.id });
+    }
   };
 
   return (
     <Container>
       <Label>List Name</Label>
-      <Input
-        value={name}
-        onChangeText={setName}
-        placeholder="Enter list name"
-      />
+      <Input value={name} onChangeText={setName} placeholder="Enter list name" />
 
       <Label>List Type</Label>
       <TypeSelector>
-        <TypeOption
-          selected={type === 'list'}
-          onPress={() => setType('list')}
-        >
-          <TypeText selected={type === 'list'}>List</TypeText>
+        <TypeOption selected={type === "list"} onPress={() => setType("list")}>
+          <TypeText selected={type === "list"}>List</TypeText>
         </TypeOption>
-        <TypeOption
-          selected={type === 'group'}
-          onPress={() => setType('group')}
-        >
-          <TypeText selected={type === 'group'}>Template</TypeText>
+        <TypeOption selected={type === "group"} onPress={() => setType("group")}>
+          <TypeText selected={type === "group"}>Group</TypeText>
         </TypeOption>
       </TypeSelector>
 
@@ -96,12 +95,12 @@ const TypeSelector = styled.View`
 
 const TypeOption = styled.TouchableOpacity<{ selected: boolean }>`
   padding: 12px 20px;
-  background-color: ${({ selected }) => (selected ? '#7216f4' : '#eee')};
+  background-color: ${({ selected }) => (selected ? "#7216f4" : "#eee")};
   border-radius: 8px;
 `;
 
 const TypeText = styled.Text<{ selected: boolean }>`
-  color: ${({ selected }) => (selected ? '#fff' : '#333')};
+  color: ${({ selected }) => (selected ? "#fff" : "#333")};
   font-weight: bold;
 `;
 

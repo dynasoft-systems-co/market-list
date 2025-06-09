@@ -6,7 +6,7 @@ import uuid from "react-native-uuid";
 import { MaterialIcons } from "@expo/vector-icons";
 import styled from "styled-components/native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
-import { Group, Item, List } from "../models/types";
+import { List, Item, GroupList } from "../models/types";
 import { loadShoppingLists, saveShoppingLists } from "../storage/useShoppingListStorage";
 import AddGroupButton from "../components/AddGroupButton";
 import ItemList from "../components/ItemList";
@@ -16,8 +16,8 @@ import { RootStackParamList } from "../../App";
 const ListScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, "List">>();
   const CURRENT_LIST_ID = route.params.listId;
-  const [allLists, setAllLists] = useState<List[]>([]);
-  const [list, setList] = useState<List | null>(null);
+  const [allLists, setAllLists] = useState<GroupList[]>([]);
+  const [list, setList] = useState<GroupList | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDoneItems, setShowDoneItems] = useState(false);
   const gestureRef = useRef(null);
@@ -52,13 +52,13 @@ const ListScreen = () => {
     });
   }, [navigation, list]);
 
-  const updateGroups = (updateFn: (groups: Group[]) => Group[]) => {
+  const updateGroups = (updateFn: (groups: List[]) => List[]) => {
     if (!list) return;
     setList({ ...list, groups: updateFn(list.groups) });
   };
 
   const handleAddGroup = () => {
-    const newGroup: Group = {
+    const newGroup: List = {
       id: uuid.v4() as string,
       name: `Group ${(list?.groups?.length ?? 0) + 1}`,
       items: [],
@@ -103,7 +103,7 @@ const ListScreen = () => {
     );
   };
 
-  const handleReorderGroups = (data: Group[]) => {
+  const handleReorderGroups = (data: List[]) => {
     updateGroups(() => data);
   };
 
@@ -126,7 +126,7 @@ const ListScreen = () => {
     );
   };
 
-  const renderGroup = ({ item, drag }: RenderItemParams<Group>) => {
+  const renderGroup = ({ item, drag }: RenderItemParams<List>) => {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(item.name);
     const [collapsed, setCollapsed] = useState(item.collapsed);
